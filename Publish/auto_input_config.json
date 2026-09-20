@@ -1,0 +1,14 @@
+{
+  "TextToInput": "1",
+  "TargetX": 232,
+  "TargetY": 845,
+  "IntervalSeconds": 3,
+  "EnableDuration": false,
+  "DurationSeconds": 10.0,
+  "EnableCount": true,
+  "RepeatCount": 100,
+  "SendEnterAfterInput": false,
+  "UseClipboardPaste": false,
+  "ClickDelayMs": 100,
+  "AlwaysOnTop": false
+}
