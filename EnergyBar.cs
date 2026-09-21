@@ -9,7 +9,7 @@ namespace RD_Tools
     public class EnergyBar : Control
     {
         private double _value = 0.0; // 0.0 to 1.0
-        private string _text = "⚪ 대기 중 (시작 버튼 또는 F6을 누르면 기동합니다)";
+        private string _text = "⚪ 대기 중 (시작 버튼을 누르면 기동합니다)";
         private bool _isActive = false;
         private int _shimmerOffset = 0;
         private readonly System.Windows.Forms.Timer _shimmerTimer;
@@ -65,7 +65,7 @@ namespace RD_Tools
 
             Height = 34;
             Font = new Font("Malgun Gothic", 9.5f, FontStyle.Bold);
-            BackColor = Color.FromArgb(32, 36, 44);
+            BackColor = Color.FromArgb(42, 38, 35);
 
             _shimmerTimer = new System.Windows.Forms.Timer { Interval = 35 };
             _shimmerTimer.Tick += (s, e) =>
@@ -89,8 +89,8 @@ namespace RD_Tools
             var rect = ClientRectangle;
             if (rect.Width <= 0 || rect.Height <= 0) return;
 
-            // 1. Dark Cyber Background
-            using (var bgBrush = new SolidBrush(Color.FromArgb(28, 32, 40)))
+            // 1. Dark Espresso Background
+            using (var bgBrush = new SolidBrush(Color.FromArgb(38, 34, 32)))
             {
                 g.FillRectangle(bgBrush, rect);
             }
@@ -101,11 +101,11 @@ namespace RD_Tools
             {
                 var fillRect = new Rectangle(0, 0, fillWidth, rect.Height);
 
-                // Neon Cyber Gradient: Emerald Green to Vivid Cyan
+                // Warm Amber Gold to Fresh Emerald Gradient
                 using (var fillBrush = new LinearGradientBrush(
                     fillRect,
-                    Color.FromArgb(39, 174, 96),   // Neon Emerald
-                    Color.FromArgb(0, 210, 211),   // Bright Cyan
+                    Color.FromArgb(228, 150, 35),   // Warm Amber Gold
+                    Color.FromArgb(60, 175, 105),   // Fresh Warm Emerald
                     LinearGradientMode.Horizontal))
                 {
                     g.FillRectangle(fillBrush, fillRect);
@@ -115,7 +115,7 @@ namespace RD_Tools
                 using (var clipRegion = new Region(fillRect))
                 {
                     g.Clip = clipRegion;
-                    using (var stripePen = new Pen(Color.FromArgb(50, 255, 255, 255), 6))
+                    using (var stripePen = new Pen(Color.FromArgb(60, 255, 255, 255), 6))
                     {
                         for (int x = -rect.Height + _shimmerOffset; x < fillWidth + rect.Height; x += 30)
                         {
@@ -126,7 +126,7 @@ namespace RD_Tools
                 }
 
                 // Top Gloss Highlight Line
-                using (var glossPen = new Pen(Color.FromArgb(120, 255, 255, 255), 1))
+                using (var glossPen = new Pen(Color.FromArgb(130, 255, 255, 255), 1))
                 {
                     g.DrawLine(glossPen, 0, 1, fillWidth, 1);
                 }
@@ -134,7 +134,7 @@ namespace RD_Tools
                 // Leading Edge Glow Indicator
                 if (fillWidth < rect.Width)
                 {
-                    using (var edgeBrush = new SolidBrush(Color.FromArgb(220, 255, 255, 255)))
+                    using (var edgeBrush = new SolidBrush(Color.FromArgb(255, 248, 225)))
                     {
                         g.FillRectangle(edgeBrush, fillWidth - 2, 0, 2, rect.Height);
                     }
@@ -142,7 +142,7 @@ namespace RD_Tools
             }
 
             // 3. Border
-            Color borderColor = _isActive ? Color.FromArgb(0, 180, 180) : Color.FromArgb(70, 75, 85);
+            Color borderColor = _isActive ? Color.FromArgb(218, 145, 30) : Color.FromArgb(90, 80, 72);
             using (var borderPen = new Pen(borderColor, 1))
             {
                 g.DrawRectangle(borderPen, 0, 0, rect.Width - 1, rect.Height - 1);
@@ -156,13 +156,13 @@ namespace RD_Tools
                 float textY = (rect.Height - size.Height) / 2f;
 
                 // Subtle shadow
-                using (var shadowBrush = new SolidBrush(Color.FromArgb(180, 10, 15, 20)))
+                using (var shadowBrush = new SolidBrush(Color.FromArgb(180, 25, 20, 15)))
                 {
                     g.DrawString(_text, Font, shadowBrush, textX + 1, textY + 1);
                 }
 
-                // Main text (White if active, Light Gray if idle)
-                Color textColor = _isActive ? Color.White : Color.FromArgb(180, 185, 195);
+                // Main text (White if active, Warm Linen Gray if idle)
+                Color textColor = _isActive ? Color.White : Color.FromArgb(195, 185, 175);
                 using (var textBrush = new SolidBrush(textColor))
                 {
                     g.DrawString(_text, Font, textBrush, textX, textY);

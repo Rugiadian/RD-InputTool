@@ -21,9 +21,13 @@ namespace RD_Tools
         public const uint KEYEVENTF_UNICODE = 0x0004;
 
         public const byte VK_CONTROL = 0x11;
+        public const byte VK_MENU = 0x12; // Alt key
         public const byte VK_V = 0x56;
         public const byte VK_RETURN = 0x0D;
         public const byte VK_ESCAPE = 0x1B;
+
+        [DllImport("user32.dll")]
+        public static extern short GetAsyncKeyState(int vKey);
 
         public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
