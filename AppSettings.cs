@@ -1,9 +1,67 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Windows.Forms;
 
 namespace RD_Tools
 {
+    public class HotkeyConfig
+    {
+        public string Modifier { get; set; } = "None";
+        public string Key { get; set; } = "F1";
+
+        public HotkeyConfig() { }
+
+        public HotkeyConfig(string modifier, string key)
+        {
+            Modifier = string.IsNullOrWhiteSpace(modifier) ? "None" : modifier.Trim();
+            Key = string.IsNullOrWhiteSpace(key) ? "F1" : key.Trim();
+        }
+
+        public override string ToString()
+        {
+            if (string.IsNullOrEmpty(Modifier) || Modifier.Equals("None", StringComparison.OrdinalIgnoreCase) || Modifier == "없음")
+                return Key;
+            return $"{Modifier}+{Key}";
+        }
+
+        public bool Matches(Keys key, bool alt, bool ctrl, bool shift)
+        {
+            if (key == Keys.Menu || key == Keys.ControlKey || key == Keys.ShiftKey ||
+                key == Keys.LMenu || key == Keys.RMenu ||
+                key == Keys.LControlKey || key == Keys.RControlKey ||
+                key == Keys.LShiftKey || key == Keys.RShiftKey)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(Key)) return false;
+
+            bool keyMatched = false;
+            if (Enum.TryParse<Keys>(Key, true, out var targetKey))
+            {
+                keyMatched = (key == targetKey);
+            }
+
+            if (!keyMatched && Key.Length == 1 && char.IsDigit(Key[0]))
+            {
+                if (Enum.TryParse<Keys>("D" + Key, true, out var digitKey) && key == digitKey)
+                    keyMatched = true;
+                else if (Enum.TryParse<Keys>("NumPad" + Key, true, out var numpadKey) && key == numpadKey)
+                    keyMatched = true;
+            }
+
+            if (!keyMatched) return false;
+
+            string mod = Modifier ?? "None";
+            bool needAlt = mod.Contains("Alt", StringComparison.OrdinalIgnoreCase);
+            bool needCtrl = mod.Contains("Ctrl", StringComparison.OrdinalIgnoreCase);
+            bool needShift = mod.Contains("Shift", StringComparison.OrdinalIgnoreCase);
+
+            return (alt == needAlt) && (ctrl == needCtrl) && (shift == needShift);
+        }
+    }
+
     public class AppSettings
     {
         public string TextToInput { get; set; } = "테스트 문구입니다.";
@@ -38,6 +96,11 @@ namespace RD_Tools
         public bool EnableHotkeys { get; set; } = true;
         public string SelectedTheme { get; set; } = "아이보리 웜";
 
+        // Customizable Hotkeys (Default Emergency: Alt + F4)
+        public HotkeyConfig HotkeyStart { get; set; } = new HotkeyConfig("Alt", "F1");
+        public HotkeyConfig HotkeyStop { get; set; } = new HotkeyConfig("None", "F2");
+        public HotkeyConfig HotkeyEmergency { get; set; } = new HotkeyConfig("Alt", "F4");
+
         private static string ConfigPath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "auto_input_config.json");
 
         public static AppSettings Load()
@@ -47,7 +110,11 @@ namespace RD_Tools
                 if (File.Exists(ConfigPath))
                 {
                     string json = File.ReadAllText(ConfigPath);
-                    return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+                    var s = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+                    s.HotkeyStart ??= new HotkeyConfig("Alt", "F1");
+                    s.HotkeyStop ??= new HotkeyConfig("None", "F2");
+                    s.HotkeyEmergency ??= new HotkeyConfig("Alt", "F4");
+                    return s;
                 }
             }
             catch { }

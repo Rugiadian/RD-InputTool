@@ -11,6 +11,7 @@ namespace RD_Tools
         private double _value = 0.0; // 0.0 to 1.0
         private string _text = "⚪ 대기 중 (시작 버튼을 누르면 기동합니다)";
         private bool _isActive = false;
+        private bool _isStopped = false;
         private int _shimmerOffset = 0;
         private readonly System.Windows.Forms.Timer _shimmerTimer;
 
@@ -37,6 +38,17 @@ namespace RD_Tools
         }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool IsStopped
+        {
+            get => _isStopped;
+            set
+            {
+                _isStopped = value;
+                Invalidate();
+            }
+        }
+
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool IsActive
         {
             get => _isActive;
@@ -45,6 +57,7 @@ namespace RD_Tools
                 _isActive = value;
                 if (_isActive)
                 {
+                    _isStopped = false;
                     _shimmerTimer.Start();
                 }
                 else
@@ -142,7 +155,20 @@ namespace RD_Tools
             }
 
             // 3. Border
-            Color borderColor = _isActive ? Color.FromArgb(218, 145, 30) : Color.FromArgb(90, 80, 72);
+            Color borderColor;
+            if (_isStopped)
+            {
+                borderColor = Color.FromArgb(205, 65, 55);
+            }
+            else if (_isActive)
+            {
+                borderColor = Color.FromArgb(218, 145, 30);
+            }
+            else
+            {
+                borderColor = Color.FromArgb(90, 80, 72);
+            }
+
             using (var borderPen = new Pen(borderColor, 1))
             {
                 g.DrawRectangle(borderPen, 0, 0, rect.Width - 1, rect.Height - 1);
@@ -161,8 +187,21 @@ namespace RD_Tools
                     g.DrawString(_text, Font, shadowBrush, textX + 1, textY + 1);
                 }
 
-                // Main text (White if active, Warm Linen Gray if idle)
-                Color textColor = _isActive ? Color.White : Color.FromArgb(195, 185, 175);
+                // Main text (White if active, Soft Red if stopped, Warm Linen Gray if idle)
+                Color textColor;
+                if (_isStopped)
+                {
+                    textColor = Color.FromArgb(245, 130, 120);
+                }
+                else if (_isActive)
+                {
+                    textColor = Color.White;
+                }
+                else
+                {
+                    textColor = Color.FromArgb(195, 185, 175);
+                }
+
                 using (var textBrush = new SolidBrush(textColor))
                 {
                     g.DrawString(_text, Font, textBrush, textX, textY);

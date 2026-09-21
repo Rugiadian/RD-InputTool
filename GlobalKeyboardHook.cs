@@ -5,12 +5,30 @@ using System.Windows.Forms;
 
 namespace RD_Tools
 {
+    public class HookKeyEventArgs : EventArgs
+    {
+        public Keys Key { get; }
+        public bool Alt { get; }
+        public bool Control { get; }
+        public bool Shift { get; }
+        public bool Handled { get; set; }
+
+        public HookKeyEventArgs(Keys key, bool alt, bool control, bool shift)
+        {
+            Key = key;
+            Alt = alt;
+            Control = control;
+            Shift = shift;
+            Handled = false;
+        }
+    }
+
     public class GlobalKeyboardHook : IDisposable
     {
         private IntPtr _hookId = IntPtr.Zero;
         private NativeMethods.LowLevelKeyboardProc _proc;
 
-        public event Action<Keys> KeyDown;
+        public event EventHandler<HookKeyEventArgs> KeyDown;
 
         public GlobalKeyboardHook()
         {
@@ -35,7 +53,18 @@ namespace RD_Tools
                 {
                     int vkCode = Marshal.ReadInt32(lParam);
                     var key = (Keys)vkCode;
-                    KeyDown?.Invoke(key);
+
+                    bool alt = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_MENU) & 0x8000) != 0;
+                    bool ctrl = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_CONTROL) & 0x8000) != 0;
+                    bool shift = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_SHIFT) & 0x8000) != 0;
+
+                    var args = new HookKeyEventArgs(key, alt, ctrl, shift);
+                    KeyDown?.Invoke(this, args);
+
+                    if (args.Handled)
+                    {
+                        return (IntPtr)1;
+                    }
                 }
             }
 

@@ -20,6 +20,7 @@ namespace RD_Tools
         public const uint KEYEVENTF_KEYUP = 0x0002;
         public const uint KEYEVENTF_UNICODE = 0x0004;
 
+        public const byte VK_SHIFT = 0x10;
         public const byte VK_CONTROL = 0x11;
         public const byte VK_MENU = 0x12; // Alt key
         public const byte VK_V = 0x56;
@@ -111,7 +112,16 @@ namespace RD_Tools
 
         public const uint INPUT_KEYBOARD = 1;
 
+        public const int PBM_SETSTATE = 0x0410;
+        public const int PBM_SETMARQUEE = 0x040A;
+        public const int PBST_NORMAL = 0x0001;
+        public const int PBST_ERROR = 0x0002;
+        public const int PBST_PAUSED = 0x0003;
+
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
     }
 }
