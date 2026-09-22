@@ -114,6 +114,7 @@ namespace RD_Tools
                     s.HotkeyStart ??= new HotkeyConfig("Alt", "F1");
                     s.HotkeyStop ??= new HotkeyConfig("None", "F2");
                     s.HotkeyEmergency ??= new HotkeyConfig("Alt", "F4");
+                    s.EnableHotkeys = true; // Always enable hotkeys on startup for responsive shortcut operation
                     return s;
                 }
             }

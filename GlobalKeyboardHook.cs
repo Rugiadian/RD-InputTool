@@ -36,10 +36,20 @@ namespace RD_Tools
             using (var curProcess = Process.GetCurrentProcess())
             using (var curModule = curProcess.MainModule)
             {
+                IntPtr hMod = NativeMethods.GetModuleHandle(curModule?.ModuleName);
+                if (hMod == IntPtr.Zero && curModule != null)
+                {
+                    hMod = curModule.BaseAddress;
+                }
+                if (hMod == IntPtr.Zero)
+                {
+                    hMod = NativeMethods.GetModuleHandle(null);
+                }
+
                 _hookId = NativeMethods.SetWindowsHookEx(
                     NativeMethods.WH_KEYBOARD_LL,
                     _proc,
-                    NativeMethods.GetModuleHandle(curModule?.ModuleName ?? string.Empty),
+                    hMod,
                     0);
             }
         }
@@ -54,9 +64,20 @@ namespace RD_Tools
                     int vkCode = Marshal.ReadInt32(lParam);
                     var key = (Keys)vkCode;
 
-                    bool alt = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_MENU) & 0x8000) != 0;
-                    bool ctrl = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_CONTROL) & 0x8000) != 0;
-                    bool shift = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_SHIFT) & 0x8000) != 0;
+                    // Read flags from KBDLLHOOKSTRUCT (offset 8): bit 5 (0x20) is LLKHF_ALTDOWN
+                    int flags = Marshal.ReadInt32(lParam, 8);
+                    bool alt = ((flags & 0x20) != 0)
+                        || (NativeMethods.GetAsyncKeyState(NativeMethods.VK_MENU) & 0x8000) != 0
+                        || (NativeMethods.GetAsyncKeyState(0xA4) & 0x8000) != 0
+                        || (NativeMethods.GetAsyncKeyState(0xA5) & 0x8000) != 0;
+
+                    bool ctrl = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_CONTROL) & 0x8000) != 0
+                        || (NativeMethods.GetAsyncKeyState(0xA2) & 0x8000) != 0
+                        || (NativeMethods.GetAsyncKeyState(0xA3) & 0x8000) != 0;
+
+                    bool shift = (NativeMethods.GetAsyncKeyState(NativeMethods.VK_SHIFT) & 0x8000) != 0
+                        || (NativeMethods.GetAsyncKeyState(0xA0) & 0x8000) != 0
+                        || (NativeMethods.GetAsyncKeyState(0xA1) & 0x8000) != 0;
 
                     var args = new HookKeyEventArgs(key, alt, ctrl, shift);
                     KeyDown?.Invoke(this, args);

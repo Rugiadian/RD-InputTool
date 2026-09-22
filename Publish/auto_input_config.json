@@ -21,7 +21,7 @@
   "UseClipboardPaste": false,
   "ClickDelayMs": 100,
   "AlwaysOnTop": true,
-  "EnableHotkeys": false,
+  "EnableHotkeys": true,
   "SelectedTheme": "\uC544\uC774\uBCF4\uB9AC \uC6DC",
   "HotkeyStart": {
     "Modifier": "None",

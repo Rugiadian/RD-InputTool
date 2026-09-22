@@ -217,25 +217,21 @@ namespace RD_Tools
         private ComboBox cboStartMod;
         private Label lblPlus1;
         private ComboBox cboStartKey;
-        private Button btnRecordStart;
 
         private Label lblStopHk;
         private ComboBox cboStopMod;
         private Label lblPlus2;
         private ComboBox cboStopKey;
-        private Button btnRecordStop;
 
         private Label lblEmergencyHk;
         private ComboBox cboEmergencyMod;
         private Label lblPlus3;
         private ComboBox cboEmergencyKey;
-        private Button btnRecordEmergency;
 
         private Label lblHkTip;
         private Button btnResetHotkeys;
 
         private bool _isUpdatingHotkeyUI = false;
-        private bool _isConfiguringHotkey = false;
 
         private static readonly string[] ModifierOptions = new[]
         {
@@ -1159,7 +1155,7 @@ namespace RD_Tools
                 Margin = new Padding(0, 0, 0, 6)
             };
 
-            // Hotkey Customization Panel
+            // Hotkey Customization Panel (Dropdowns only)
             pnlHotkeys = new TableLayoutPanel
             {
                 Dock = DockStyle.Top,
@@ -1169,58 +1165,49 @@ namespace RD_Tools
                 Margin = new Padding(0, 2, 0, 2),
                 Padding = new Padding(2, 2, 2, 2)
             };
-            pnlHotkeys.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 125f)); // Title
-            pnlHotkeys.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 105f)); // Modifier
-            pnlHotkeys.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20f));  // +
-            pnlHotkeys.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 105f)); // Key
-            pnlHotkeys.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));  // Capture button
+            pnlHotkeys.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 135f)); // Title
+            pnlHotkeys.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120f)); // Modifier Dropdown
+            pnlHotkeys.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 24f));  // +
+            pnlHotkeys.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120f)); // Key Dropdown
+            pnlHotkeys.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));  // Reset button / spacing
 
             // Row 0: Start Hotkey
             lblStartHk = new Label { Text = "▶ 시작 단축키 :", AutoSize = true, Anchor = AnchorStyles.Left, Font = new Font("Malgun Gothic", 9f, FontStyle.Bold) };
             cboStartMod = CreateModCombo();
             lblPlus1 = new Label { Text = "+", AutoSize = false, TextAlign = ContentAlignment.MiddleCenter, Dock = DockStyle.Fill, Font = new Font("Malgun Gothic", 9f, FontStyle.Bold) };
             cboStartKey = CreateKeyCombo();
-            btnRecordStart = CreateRecordButton("⌨ 감지");
-            btnRecordStart.Click += (s, e) => CaptureHotkey("▶ 시작 단축키", cboStartMod, cboStartKey, _settings.HotkeyStart);
 
             pnlHotkeys.Controls.Add(lblStartHk, 0, 0);
             pnlHotkeys.Controls.Add(cboStartMod, 1, 0);
             pnlHotkeys.Controls.Add(lblPlus1, 2, 0);
             pnlHotkeys.Controls.Add(cboStartKey, 3, 0);
-            pnlHotkeys.Controls.Add(btnRecordStart, 4, 0);
 
             // Row 1: Stop Hotkey
             lblStopHk = new Label { Text = "⏹ 정지 단축키 :", AutoSize = true, Anchor = AnchorStyles.Left, Font = new Font("Malgun Gothic", 9f, FontStyle.Bold) };
             cboStopMod = CreateModCombo();
             lblPlus2 = new Label { Text = "+", AutoSize = false, TextAlign = ContentAlignment.MiddleCenter, Dock = DockStyle.Fill, Font = new Font("Malgun Gothic", 9f, FontStyle.Bold) };
             cboStopKey = CreateKeyCombo();
-            btnRecordStop = CreateRecordButton("⌨ 감지");
-            btnRecordStop.Click += (s, e) => CaptureHotkey("⏹ 정지 단축키", cboStopMod, cboStopKey, _settings.HotkeyStop);
 
             pnlHotkeys.Controls.Add(lblStopHk, 0, 1);
             pnlHotkeys.Controls.Add(cboStopMod, 1, 1);
             pnlHotkeys.Controls.Add(lblPlus2, 2, 1);
             pnlHotkeys.Controls.Add(cboStopKey, 3, 1);
-            pnlHotkeys.Controls.Add(btnRecordStop, 4, 1);
 
             // Row 2: Emergency Hotkey (Default: Alt + F4)
             lblEmergencyHk = new Label { Text = "🚨 긴급탈출 단축키 :", AutoSize = true, Anchor = AnchorStyles.Left, Font = new Font("Malgun Gothic", 9f, FontStyle.Bold) };
             cboEmergencyMod = CreateModCombo();
             lblPlus3 = new Label { Text = "+", AutoSize = false, TextAlign = ContentAlignment.MiddleCenter, Dock = DockStyle.Fill, Font = new Font("Malgun Gothic", 9f, FontStyle.Bold) };
             cboEmergencyKey = CreateKeyCombo();
-            btnRecordEmergency = CreateRecordButton("⌨ 감지");
-            btnRecordEmergency.Click += (s, e) => CaptureHotkey("🚨 긴급탈출 단축키", cboEmergencyMod, cboEmergencyKey, _settings.HotkeyEmergency);
 
             pnlHotkeys.Controls.Add(lblEmergencyHk, 0, 2);
             pnlHotkeys.Controls.Add(cboEmergencyMod, 1, 2);
             pnlHotkeys.Controls.Add(lblPlus3, 2, 2);
             pnlHotkeys.Controls.Add(cboEmergencyKey, 3, 2);
-            pnlHotkeys.Controls.Add(btnRecordEmergency, 4, 2);
 
             // Row 3: Bottom info & Reset button
             lblHkTip = new Label
             {
-                Text = "※ 변경 시 즉시 반영 및 저장됩니다. (긴급탈출은 단축키 OFF 시에도 항상 동작)",
+                Text = "※ 드롭다운 선택 시 즉시 저장 및 반영됩니다. (긴급탈출은 단축키 OFF 시에도 항상 동작)",
                 AutoSize = true,
                 Anchor = AnchorStyles.Left,
                 Font = new Font("Malgun Gothic", 8.25f, FontStyle.Regular),
@@ -1411,10 +1398,10 @@ namespace RD_Tools
             var cbo = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
-                Width = 100,
+                Dock = DockStyle.Fill,
                 Font = new Font("Malgun Gothic", 9f, FontStyle.Regular),
                 Cursor = Cursors.Hand,
-                Margin = new Padding(0, 1, 0, 1)
+                Margin = new Padding(0, 2, 0, 2)
             };
             cbo.Items.AddRange(ModifierOptions);
             cbo.SelectedIndex = 0;
@@ -1427,31 +1414,15 @@ namespace RD_Tools
             var cbo = new ComboBox
             {
                 DropDownStyle = ComboBoxStyle.DropDownList,
-                Width = 100,
+                Dock = DockStyle.Fill,
                 Font = new Font("Malgun Gothic", 9f, FontStyle.Regular),
                 Cursor = Cursors.Hand,
-                Margin = new Padding(0, 1, 0, 1)
+                Margin = new Padding(0, 2, 0, 2)
             };
             cbo.Items.AddRange(KeyOptions);
             cbo.SelectedIndex = 0;
             cbo.SelectedIndexChanged += (s, e) => OnHotkeyControlChanged();
             return cbo;
-        }
-
-        private Button CreateRecordButton(string text = "⌨ 감지")
-        {
-            var btn = new Button
-            {
-                Text = text,
-                Dock = DockStyle.Fill,
-                Height = 26,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Malgun Gothic", 8.5f, FontStyle.Bold),
-                Cursor = Cursors.Hand,
-                Margin = new Padding(4, 1, 0, 1)
-            };
-            btn.FlatAppearance.BorderSize = 0;
-            return btn;
         }
 
         private void OnHotkeyControlChanged()
@@ -1480,36 +1451,6 @@ namespace RD_Tools
 
             UpdateHotkeyButtonUI();
             UpdateModeHint();
-        }
-
-        private void CaptureHotkey(string targetName, ComboBox cboMod, ComboBox cboKey, HotkeyConfig currentConfig)
-        {
-            _isConfiguringHotkey = true;
-            try
-            {
-                using (var dlg = new HotkeyCaptureDialog(targetName, currentConfig, _currentTheme?.IsDark ?? false))
-                {
-                    if (dlg.ShowDialog(this) == DialogResult.OK && dlg.ResultConfig != null)
-                    {
-                        _isUpdatingHotkeyUI = true;
-                        cboMod.SelectedItem = ModToDisplay(dlg.ResultConfig.Modifier);
-                        if (!cboKey.Items.Contains(dlg.ResultConfig.Key))
-                        {
-                            cboKey.Items.Add(dlg.ResultConfig.Key);
-                        }
-                        cboKey.SelectedItem = dlg.ResultConfig.Key;
-                        _isUpdatingHotkeyUI = false;
-
-                        OnHotkeyControlChanged();
-                        SystemSounds.Beep.Play();
-                        lblStatus.Text = $"{targetName} 단축키가 [{dlg.ResultConfig}]로 변경되었습니다.";
-                    }
-                }
-            }
-            finally
-            {
-                _isConfiguringHotkey = false;
-            }
         }
 
         private void ResetHotkeysToDefault()
@@ -1659,12 +1600,6 @@ namespace RD_Tools
                 cboEmergencyMod.BackColor = theme.InputBg; cboEmergencyMod.ForeColor = theme.InputFg;
                 cboEmergencyKey.BackColor = theme.InputBg; cboEmergencyKey.ForeColor = theme.InputFg;
 
-                Color recordBtnBg = theme.IsDark ? Color.FromArgb(55, 60, 68) : Color.FromArgb(235, 230, 222);
-                btnRecordStart.BackColor = recordBtnBg; btnRecordStart.ForeColor = theme.TextPrimary;
-                btnRecordStop.BackColor = recordBtnBg; btnRecordStop.ForeColor = theme.TextPrimary;
-                btnRecordEmergency.BackColor = theme.IsDark ? Color.FromArgb(70, 50, 50) : Color.FromArgb(245, 225, 225);
-                btnRecordEmergency.ForeColor = theme.IsDark ? Color.FromArgb(250, 150, 150) : Color.FromArgb(190, 50, 50);
-
                 btnResetHotkeys.BackColor = theme.IsDark ? Color.FromArgb(50, 54, 60) : Color.FromArgb(230, 226, 218);
                 btnResetHotkeys.ForeColor = theme.TextSecondary;
             }
@@ -1810,45 +1745,49 @@ namespace RD_Tools
                 _keyboardHook = new GlobalKeyboardHook();
                 _keyboardHook.KeyDown += (sender, e) =>
                 {
-                    if (_isConfiguringHotkey) return;
-
-                    // 1. Emergency Escape: ALWAYS stops auto input regardless of _hotkeysEnabled!
-                    if (_settings.HotkeyEmergency != null && _settings.HotkeyEmergency.Matches(e.Key, e.Alt, e.Control, e.Shift))
+                    // 1. Emergency Escape: ALWAYS stops auto input when running, regardless of _hotkeysEnabled!
+                    if (_isRunning && _settings.HotkeyEmergency != null && _settings.HotkeyEmergency.Matches(e.Key, e.Alt, e.Control, e.Shift))
                     {
-                        if (_isRunning)
+                        e.Handled = true; // Block Alt+F4 from closing target application
+                        _isEmergencyStop = true;
+                        BeginInvoke(new Action(() =>
                         {
-                            e.Handled = true; // Block Alt+F4 from closing target application
-                            _isEmergencyStop = true;
-                            BeginInvoke(new Action(() =>
-                            {
-                                StopAutoInput();
-                                SystemSounds.Hand.Play();
-                            }));
-                        }
+                            StopAutoInput();
+                            SystemSounds.Hand.Play();
+                        }));
                         return;
                     }
 
                     // 2. Regular hotkeys only active when _hotkeysEnabled is true
                     if (!_hotkeysEnabled) return;
 
-                    if (_settings.HotkeyStart != null && _settings.HotkeyStart.Matches(e.Key, e.Alt, e.Control, e.Shift))
+                    if (_isRunning)
                     {
-                        if (!_isRunning)
+                        // Stop hotkey while running
+                        if (_settings.HotkeyStop != null && _settings.HotkeyStop.Matches(e.Key, e.Alt, e.Control, e.Shift))
                         {
                             e.Handled = true;
-                            BeginInvoke(new Action(() => StartAutoInput()));
+                            BeginInvoke(new Action(() =>
+                            {
+                                StopAutoInput();
+                                SystemSounds.Beep.Play();
+                            }));
+                            return;
                         }
-                        return;
                     }
-
-                    if (_settings.HotkeyStop != null && _settings.HotkeyStop.Matches(e.Key, e.Alt, e.Control, e.Shift))
+                    else
                     {
-                        if (_isRunning)
+                        // Start hotkey while stopped
+                        if (_settings.HotkeyStart != null && _settings.HotkeyStart.Matches(e.Key, e.Alt, e.Control, e.Shift))
                         {
                             e.Handled = true;
-                            BeginInvoke(new Action(() => StopAutoInput()));
+                            BeginInvoke(new Action(() =>
+                            {
+                                StartAutoInput();
+                                SystemSounds.Beep.Play();
+                            }));
+                            return;
                         }
-                        return;
                     }
                 };
             }
@@ -2252,15 +2191,12 @@ namespace RD_Tools
             // Custom Hotkey Controls
             cboStartMod.Enabled = !running;
             cboStartKey.Enabled = !running;
-            btnRecordStart.Enabled = !running;
 
             cboStopMod.Enabled = !running;
             cboStopKey.Enabled = !running;
-            btnRecordStop.Enabled = !running;
 
             cboEmergencyMod.Enabled = !running;
             cboEmergencyKey.Enabled = !running;
-            btnRecordEmergency.Enabled = !running;
 
             btnResetHotkeys.Enabled = !running;
 
