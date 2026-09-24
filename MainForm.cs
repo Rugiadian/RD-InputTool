@@ -386,11 +386,15 @@ namespace RD_Tools
             btnTopMost.FlatAppearance.BorderSize = 0;
             btnTopMost.Click += (s, e) =>
             {
-                TopMost = !TopMost;
-                _settings.AlwaysOnTop = TopMost;
+                bool currentActual = IsHandleCreated ? NativeMethods.IsWindowTopMost(Handle) : TopMost;
+                bool newTop = !currentActual;
+                ApplyTopMost(newTop);
+                _settings.AlwaysOnTop = newTop;
                 _settings.Save();
-                UpdateTopMostButtonUI();
                 SystemSounds.Beep.Play();
+                lblStatus.Text = newTop
+                    ? "📌 창 항상 위: [ON] 활성화됨 (다른 창 위에 고정)"
+                    : "📌 창 항상 위: [OFF] 비활성화됨 (일반 창 모드)";
             };
 
             btnToggleHotkeys = new Button
@@ -1644,9 +1648,28 @@ namespace RD_Tools
             }
         }
 
+        private void ApplyTopMost(bool enable)
+        {
+            TopMost = enable;
+            _settings.AlwaysOnTop = enable;
+            if (IsHandleCreated)
+            {
+                NativeMethods.SetWindowTopMost(Handle, enable);
+            }
+            UpdateTopMostButtonUI();
+        }
+
         private void UpdateTopMostButtonUI()
         {
-            if (TopMost)
+            // 실제 OS 윈도우 스타일(WS_EX_TOPMOST)을 직접 확인하여 표기
+            bool isActuallyTop = IsHandleCreated ? NativeMethods.IsWindowTopMost(Handle) : (_settings?.AlwaysOnTop ?? TopMost);
+
+            if (IsHandleCreated && TopMost != isActuallyTop)
+            {
+                TopMost = isActuallyTop;
+            }
+
+            if (isActuallyTop)
             {
                 btnTopMost.Text = "📌 창 항상 위 [ON] (클릭 시 OFF)";
                 btnTopMost.BackColor = _currentTheme?.Accent ?? Color.FromArgb(197, 128, 32);
@@ -1808,6 +1831,10 @@ namespace RD_Tools
                     SystemSounds.Beep.Play();
                     lblStatus.Text = $"{pointName} 좌표 설정 완료: X={picker.SelectedPoint.X}, Y={picker.SelectedPoint.Y}";
                 }
+            }
+            if (_settings.AlwaysOnTop && IsHandleCreated)
+            {
+                ApplyTopMost(true);
             }
         }
 
@@ -2360,7 +2387,7 @@ namespace RD_Tools
             _settings.SendEnterAfterInput = chkEnter.Checked;
             _settings.UseClipboardPaste = chkClipboard.Checked;
             _settings.ClickDelayMs = (int)numClickDelay.Value;
-            _settings.AlwaysOnTop = TopMost;
+            _settings.AlwaysOnTop = IsHandleCreated ? NativeMethods.IsWindowTopMost(Handle) : _settings.AlwaysOnTop;
             _settings.EnableHotkeys = _hotkeysEnabled;
             _settings.SelectedTheme = cboTheme.SelectedItem?.ToString() ?? "아이보리 웜";
 
@@ -2369,6 +2396,58 @@ namespace RD_Tools
             _settings.HotkeyEmergency = new HotkeyConfig(ModFromDisplay(cboEmergencyMod.SelectedItem?.ToString()), cboEmergencyKey.SelectedItem?.ToString() ?? "F4");
 
             _settings.Save();
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+
+            // 최초 실행 시 창이 화면에 올라온 뒤 OS 레벨에서 TopMost를 확실하게 강제 적용 및 상태 검증
+            if (_settings.AlwaysOnTop)
+            {
+                ApplyTopMost(true);
+            }
+            else
+            {
+                ApplyTopMost(false);
+            }
+
+            UpdateTopMostButtonUI();
+
+            bool isActuallyTop = NativeMethods.IsWindowTopMost(Handle);
+            if (isActuallyTop)
+            {
+                lblStatus.Text = "상태: 준비 완료 (창 항상 위: ON)";
+            }
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+
+            // 창이 최소화되었다가 복원될 때 OS에서 HWND_TOPMOST가 풀리는 현상 방지 및 상태 동기화
+            if (WindowState != FormWindowState.Minimized && _settings.AlwaysOnTop && IsHandleCreated)
+            {
+                if (!NativeMethods.IsWindowTopMost(Handle))
+                {
+                    NativeMethods.SetWindowTopMost(Handle, true);
+                    TopMost = true;
+                }
+                UpdateTopMostButtonUI();
+            }
+        }
+
+        protected override void OnActivated(EventArgs e)
+        {
+            base.OnActivated(e);
+
+            // 창 활성화 시 항상 위 상태가 해제되어 있다면 다시 복구 및 UI 갱신
+            if (_settings.AlwaysOnTop && IsHandleCreated && !NativeMethods.IsWindowTopMost(Handle))
+            {
+                NativeMethods.SetWindowTopMost(Handle, true);
+                TopMost = true;
+                UpdateTopMostButtonUI();
+            }
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)

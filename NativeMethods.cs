@@ -27,6 +27,49 @@ namespace RD_Tools
         public const byte VK_RETURN = 0x0D;
         public const byte VK_ESCAPE = 0x1B;
 
+        public const int GWL_EXSTYLE = -20;
+        public const uint WS_EX_TOPMOST = 0x00000008;
+
+        public static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        public static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+
+        public const uint SWP_NOSIZE = 0x0001;
+        public const uint SWP_NOMOVE = 0x0002;
+        public const uint SWP_NOACTIVATE = 0x0010;
+        public const uint SWP_SHOWWINDOW = 0x0040;
+        public const uint TOPMOST_FLAGS = SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW;
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongW", SetLastError = true)]
+        private static extern int GetWindowLong32(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW", SetLastError = true)]
+        private static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);
+
+        public static IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex)
+        {
+            if (IntPtr.Size == 8)
+                return GetWindowLongPtr64(hWnd, nIndex);
+            return new IntPtr(GetWindowLong32(hWnd, nIndex));
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        public static bool IsWindowTopMost(IntPtr hWnd)
+        {
+            if (hWnd == IntPtr.Zero) return false;
+            long exStyle = GetWindowLongPtr(hWnd, GWL_EXSTYLE).ToInt64();
+            return (exStyle & WS_EX_TOPMOST) != 0;
+        }
+
+        public static bool SetWindowTopMost(IntPtr hWnd, bool topMost)
+        {
+            if (hWnd == IntPtr.Zero) return false;
+            IntPtr insertAfter = topMost ? HWND_TOPMOST : HWND_NOTOPMOST;
+            return SetWindowPos(hWnd, insertAfter, 0, 0, 0, 0, TOPMOST_FLAGS);
+        }
+
         [DllImport("user32.dll")]
         public static extern short GetAsyncKeyState(int vKey);
 
